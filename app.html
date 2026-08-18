@@ -35,8 +35,11 @@
         <h1 class="greeting gradient-text" id="customTitleDisplay">My Setup</h1>
         
         <div class="rofi-search" id="searchOverlay">
-          <svg class="icon rofi-icon"><use href="#icon-search"></use></svg>
-          <input type="text" id="searchInput" class="rofi-input" autocomplete="off" spellcheck="false" placeholder="search..." size="15" autofocus />
+          <div class="rofi-search-bar">
+            <svg class="icon rofi-icon"><use href="#icon-search"></use></svg>
+            <input type="text" id="searchInput" class="rofi-input" autocomplete="off" spellcheck="false" placeholder="search..." autofocus />
+          </div>
+          <ul class="rofi-suggestions" id="suggestions"></ul>
         </div>
 
         <div class="clock-container">

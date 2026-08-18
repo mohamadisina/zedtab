@@ -253,12 +253,15 @@ document.addEventListener("DOMContentLoaded", () => {
     clockElement.textContent = `${hours}:${minutes}`;
 
     if (dateElement) {
+      const jalaliWeekdays = { '\u06cc\u06a9\u200c\u0634\u0646\u0628\u0647': 'Yekshanbe', '\u062f\u0648\u0634\u0646\u0628\u0647': 'Doshanbe', '\u0633\u0647\u200c\u0634\u0646\u0628\u0647': 'Seshanbe', '\u0686\u0647\u0627\u0631\u0634\u0646\u0628\u0647': 'Chaharshanbe', '\u067e\u0646\u062c\u200c\u0634\u0646\u0628\u0647': 'Panjshanbe', '\u062c\u0645\u0639\u0647': 'Jome', '\u0634\u0646\u0628\u0647': 'Shanbe' };
+      const faWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(now);
+      const enWeekday = jalaliWeekdays[faWeekday] || faWeekday;
       if (dateMode === "short") {
-        dateElement.textContent = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(now);
+        dateElement.textContent = enWeekday;
       } else {
-        const y = new Intl.DateTimeFormat('fa-IR', { year: 'numeric' }).format(now);
-        const m = new Intl.DateTimeFormat('fa-IR', { month: 'numeric' }).format(now);
-        const d = new Intl.DateTimeFormat('fa-IR', { day: 'numeric' }).format(now);
+        const y = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric' }).format(now);
+        const m = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { month: 'numeric' }).format(now);
+        const d = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { day: 'numeric' }).format(now);
         dateElement.textContent = `${y}/${m}/${d}`;
       }
     }
@@ -829,8 +832,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Rofi Search Feature ---
   const searchOverlay = document.getElementById("searchOverlay");
   const searchInput = document.getElementById("searchInput");
+  const suggestionsEl = document.getElementById("suggestions");
   const mainHeader = document.getElementById("mainHeader");
   let searchActive = false;
+  let selectedIndex = -1;
+  let currentSuggestions = [];
+  let fetchTimer = null;
 
   function openSearch(firstChar) {
     searchActive = true;
@@ -838,6 +845,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mainHeader.classList.add("search-active");
     searchInput.value = firstChar || "";
     searchInput.focus();
+    if (firstChar) fetchSuggestions(firstChar);
   }
 
   function closeSearch() {
@@ -846,10 +854,16 @@ document.addEventListener("DOMContentLoaded", () => {
     mainHeader.classList.remove("search-active");
     searchInput.value = "";
     searchInput.blur();
+    clearSuggestions();
   }
 
-  function handleSearchSubmit() {
-    let query = searchInput.value.trim();
+  function clearSuggestions() {
+    suggestionsEl.innerHTML = "";
+    currentSuggestions = [];
+    selectedIndex = -1;
+  }
+
+  function navigateTo(query) {
     if (!query) return;
     const urlPattern = /^((https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?)$/i;
     if (urlPattern.test(query) && !query.includes(' ')) {
@@ -862,13 +876,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function fetchSuggestions(query) {
+    if (fetchTimer) clearTimeout(fetchTimer);
+    if (!query.trim()) { clearSuggestions(); return; }
+    fetchTimer = setTimeout(() => {
+      fetch(`https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (searchInput.value.trim() !== query.trim()) return;
+          currentSuggestions = (data[1] || []).slice(0, 6);
+          renderSuggestions();
+        })
+        .catch(() => {});
+    }, 150);
+  }
+
+  function renderSuggestions() {
+    suggestionsEl.innerHTML = "";
+    selectedIndex = -1;
+    currentSuggestions.forEach((text, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>${text}</span>`;
+      li.addEventListener("click", () => navigateTo(text));
+      li.addEventListener("mouseenter", () => {
+        selectedIndex = i;
+        highlightItem();
+      });
+      suggestionsEl.appendChild(li);
+    });
+  }
+
+  function highlightItem() {
+    const items = suggestionsEl.querySelectorAll("li");
+    items.forEach((li, i) => li.classList.toggle("active", i === selectedIndex));
+  }
+
+  searchInput.addEventListener("input", () => {
+    fetchSuggestions(searchInput.value);
+  });
+
   searchInput.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeSearch();
       e.preventDefault();
-    } else if (e.key === "Enter") {
-      handleSearchSubmit();
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
+      if (currentSuggestions.length > 0) {
+        selectedIndex = (selectedIndex + 1) % currentSuggestions.length;
+        highlightItem();
+        searchInput.value = currentSuggestions[selectedIndex];
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (currentSuggestions.length > 0) {
+        selectedIndex = selectedIndex <= 0 ? currentSuggestions.length - 1 : selectedIndex - 1;
+        highlightItem();
+        searchInput.value = currentSuggestions[selectedIndex];
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      navigateTo(searchInput.value.trim());
     }
   });
 
