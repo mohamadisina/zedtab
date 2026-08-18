@@ -560,6 +560,19 @@ h4 {
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
 
+/* SVG Icons */
+.icon {
+    width: 1.2em;
+    height: 1.2em;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 /* Rofi Style Search */
 .rofi-search {
     position: absolute;
@@ -593,8 +606,9 @@ h4 {
 }
 
 .rofi-icon {
-    font-size: 1.6rem;
-    color: var(--accent-color);
+    width: 24px;
+    height: 24px;
+    stroke: var(--accent-color);
     margin-right: 0.8rem;
 }
 

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Tab</title>
+
+    <link rel="stylesheet" href="styles.css" />
+    <script src="src/color-thief.js"></script>
+  </head>
+  <body>
+    <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
+      <symbol id="icon-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></symbol>
+      <symbol id="icon-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
+      <symbol id="icon-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.6 1.5-1.5 0-.4-.1-.7-.3-1-.2-.3-.3-.6-.3-.9 0-.8.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-5-4.5-9-10-9z"></path></symbol>
+      <symbol id="icon-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></symbol>
+      <symbol id="icon-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
+      <symbol id="icon-shuffle" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></symbol>
+      <symbol id="icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
+      <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></symbol>
+      <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></symbol>
+    </svg>
+    <img id="background-img" src="" alt="Background" />
+    <div class="overlay"></div>
+
+
+    <main class="container">
+      <header class="header" id="mainHeader">
+        <h1 class="greeting gradient-text" id="customTitleDisplay">My Setup</h1>
+        
+        <div class="rofi-search" id="searchOverlay">
+          <svg class="icon rofi-icon"><use href="#icon-search"></use></svg>
+          <input type="text" id="searchInput" class="rofi-input" autocomplete="off" spellcheck="false" placeholder="search..." size="15" autofocus />
+        </div>
+
+        <div class="clock" id="clock">00:00</div>
+      </header>
+
+      <section class="links-section">
+        <div class="breadcrumb" id="breadcrumb" style="display: none">
+          <button id="backBtn" class="back-btn">
+            <svg class="icon"><use href="#icon-chevron-left"></use></svg> <span id="backText">Back</span>
+          </button>
+          <span class="current-folder-name" id="currentFolderName"></span>
+        </div>
+        <div class="links-grid" id="linksGrid"></div>
+      </section>
+    </main>
+
+    <button class="fab" id="openDashboardBtn" title="Settings">
+      <svg class="icon"><use href="#icon-sliders"></use></svg>
+    </button>
+
+    <div class="modal-overlay" id="dashboardModal">
+      <div class="dashboard-window">
+        <aside class="dashboard-sidebar">
+          <div class="sidebar-header">
+            <h2 id="dashTitle">Settings</h2>
+          </div>
+          <nav class="sidebar-nav">
+            <button class="nav-btn active" data-tab="tab-general">
+              <svg class="icon"><use href="#icon-settings"></use></svg> <span id="navGeneral">General</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-appearance">
+              <svg class="icon"><use href="#icon-palette"></use></svg>
+              <span id="navAppearance">Appearance</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-bookmarks">
+              <svg class="icon"><use href="#icon-bookmark"></use></svg>
+              <span id="navBookmarks">Bookmarks</span>
+            </button>
+          </nav>
+        </aside>
+
+        <div class="dashboard-main">
+          <header class="main-header">
+            <h3 id="currentTabTitle">General</h3>
+            <button class="close-btn" id="closeDashboardBtn">
+              <svg class="icon"><use href="#icon-x"></use></svg>
+            </button>
+          </header>
+
+          <div class="dashboard-content">
+            <div class="tab-pane active" id="tab-general">
+              <div class="form-group">
+                <label for="customTitleInput" id="lblCustomTitle">Main Title</label>
+                <input
+                  type="text"
+                  id="customTitleInput"
+                  placeholder="e.g. Focus, My Setup"
+                />
+                <button class="btn primary-btn mt-2" id="saveTitleBtn">
+                  Save Title
+                </button>
+              </div>
+              <hr class="divider" />
+              <div class="form-group">
+                <label for="langSelect" id="lblLanguage">Language</label>
+                <select id="langSelect" class="styled-select">
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fa">فارسی</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-appearance">
+              <h4 id="lblBackground">Background</h4>
+              
+              <div class="form-group">
+                <label for="fontSelect" id="lblFont">Font Family</label>
+                <select id="fontSelect" class="styled-select">
+                  <option value="system-ui, -apple-system, sans-serif">System UI (Default)</option>
+                  <option value="Arial, Helvetica, sans-serif">Arial / Helvetica</option>
+                  <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                  <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                  <option value="monospace">Monospace</option>
+                </select>
+              </div>
+
+              <div class="wallpaper-options">
+                <button class="wall-opt-btn" id="btnWallRandom">
+                  <svg class="icon"><use href="#icon-shuffle"></use></svg> Random
+                </button>
+                <button class="wall-opt-btn" id="btnWallUrlToggle">
+                  <svg class="icon"><use href="#icon-link"></use></svg> URL
+                </button>
+                <label class="wall-opt-btn">
+                  <svg class="icon"><use href="#icon-upload"></use></svg> Upload
+                  <input
+                    type="file"
+                    id="wallpaperUpload"
+                    accept="image/*"
+                    style="display: none"
+                  />
+                </label>
+              </div>
+
+              <div
+                class="form-group mt-2"
+                id="urlInputContainer"
+                style="display: none"
+              >
+                <input
+                  type="url"
+                  id="wallpaperUrlInput"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <button class="btn primary-btn mt-2" id="saveWallUrlBtn">
+                  Apply URL
+                </button>
+              </div>
+
+              <div class="blur-control">
+                <h4 id="lblBlur">Blur Intensity</h4>
+                <div class="blur-slider-container">
+                  <input
+                    type="range"
+                    id="blurSlider"
+                    class="blur-slider"
+                    min="0"
+                    max="30"
+                    value="8"
+                    step="1"
+                  />
+                  <span class="blur-value" id="blurValue">8px</span>
+                </div>
+              </div>
+
+              <hr class="divider" />
+
+              <h4 id="lblThemeColors">Theme Palette</h4>
+              <p class="helper-text" id="lblThemeHelper">
+                Colors from your background.
+              </p>
+
+              <div class="palette-container" id="paletteContainer"></div>
+            </div>
+
+            <div class="tab-pane" id="tab-bookmarks">
+              <h4 id="lblAddItem">Add Item</h4>
+              <div class="type-toggle">
+                <label
+                  ><input type="radio" name="itemType" value="link" checked />
+                  <span id="lblLink">Link</span></label
+                >
+                <label
+                  ><input type="radio" name="itemType" value="folder" />
+                  <span id="lblFolder">Folder</span></label
+                >
+              </div>
+
+              <form id="addLinkForm" class="add-link-form">
+                <div class="form-group">
+                  <label for="linkTitle" id="lblItemTitle">Title</label>
+                  <input
+                    type="text"
+                    id="linkTitle"
+                    placeholder="e.g. GitHub"
+                    required
+                  />
+                </div>
+                <div class="form-group" id="urlGroup">
+                  <label for="linkUrl">URL</label>
+                  <input type="text" id="linkUrl" placeholder="example.com" />
+                </div>
+                <div class="form-group" id="iconGroup">
+                  <label for="linkIcon" id="lblItemIcon">Icon URL (optional)</label>
+                  <input
+                    type="url"
+                    id="linkIcon"
+                    placeholder="https://example.com/icon.png"
+                  />
+                  <small class="helper-text" id="lblIconHelper">Leave blank to auto-fetch.</small>
+                </div>
+                <div class="form-group">
+                  <label for="targetFolder" id="lblTargetFolder">Target Folder</label>
+                  <select id="targetFolder" class="styled-select">
+                    <option value="main">Main</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  class="btn primary-btn w-100"
+                  id="btnAddItem"
+                >
+                  Add Item
+                </button>
+              </form>
+
+              <hr class="divider" />
+              <h4 id="lblYourItems">Your Items</h4>
+              <ul class="manage-links-list" id="manageLinksList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="src/script.js"></script>
+  </body>
+</html>

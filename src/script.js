@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentTabTitle = document.getElementById("currentTabTitle");
 
   const langSelect = document.getElementById("langSelect");
+  const fontSelect = document.getElementById("fontSelect");
   const customTitleInput = document.getElementById("customTitleInput");
   const saveTitleBtn = document.getElementById("saveTitleBtn");
 
@@ -42,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const manageLinksList = document.getElementById("manageLinksList");
 
   let currentLang = localStorage.getItem("productTab_lang") || "en";
+  let currentFont = localStorage.getItem("productTab_font") || "system-ui, -apple-system, sans-serif";
   let customTitle =
     localStorage.getItem("productTab_customTitle") || "My Setup";
   let currentFolderId = "root";
@@ -109,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       lblYourItems: "Your Items",
       backText: "Back",
       rootFolder: "Main",
+      lblFont: "Font Family",
     },
     es: {
       dashTitle: "Ajustes",
@@ -134,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
       lblYourItems: "Tus Items",
       backText: "Volver",
       rootFolder: "Main",
+      lblFont: "Fuente",
     },
     fa: {
       dashTitle: "تنظیمات",
@@ -159,6 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       lblYourItems: "آیتم‌های شما",
       backText: "بازگشت",
       rootFolder: "اصلی",
+      lblFont: "فونت دسکتاپ",
     },
   };
 
@@ -175,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("lblCustomTitle").textContent = lang.lblCustomTitle;
     saveTitleBtn.textContent = lang.btnSaveTitle;
     document.getElementById("lblLanguage").textContent = lang.lblLanguage;
+    document.getElementById("lblFont").textContent = lang.lblFont;
 
     document.getElementById("lblBackground").textContent = lang.lblBackground;
     document.getElementById("lblBlur").textContent = lang.lblBlur;
@@ -204,6 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function saveState() {
     localStorage.setItem("productTab_lang", currentLang);
+    localStorage.setItem("productTab_font", currentFont);
     localStorage.setItem("productTab_customTitle", customTitle);
     localStorage.setItem("productTab_bgType", bgType);
     if (bgType !== "random")
@@ -218,6 +225,11 @@ document.addEventListener("DOMContentLoaded", () => {
     customTitleInput.value = customTitle;
     updateClock();
     setInterval(updateClock, 1000);
+  }
+
+  function applyFont() {
+    document.body.style.fontFamily = currentFont;
+    fontSelect.value = currentFont;
   }
 
   function updateClock() {
@@ -454,9 +466,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleImgErrors(container) {
     container.querySelectorAll("img").forEach((img) => {
       img.addEventListener("error", function () {
-        this.src =
-          "https://unpkg.com/boxicons@2.1.4/svg/regular/bx-globe.svg";
-        this.style.filter = "invert(1)";
+        // Replace broken images with a globe icon SVG
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "link-icon");
+        svg.innerHTML = '<use href="#icon-globe"></use>';
+        svg.style.width = "40px";
+        svg.style.height = "40px";
+        svg.style.fill = "none";
+        svg.style.stroke = "rgba(255,255,255,0.7)";
+        svg.style.strokeWidth = "2";
+        this.replaceWith(svg);
       });
     });
   }
@@ -486,14 +505,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="link-icon-wrapper"><img src="${iconUrl}" class="link-icon"></div>
                     <span class="link-title">${item.title}</span>`;
       } else if (item.type === "folder") {
-        card.onclick = (e) => {
+        card.href = "#";
+        card.innerHTML = `
+                    <div class="link-icon-wrapper"><svg class="icon" style="width:32px;height:32px;stroke:var(--accent-color);"><use href="#icon-folder"></use></svg></div>
+                    <span class="link-title">${item.title}</span>`;
+        card.addEventListener("click", (e) => {
           e.preventDefault();
           currentFolderId = item.id;
           renderGrid();
-        };
-        card.innerHTML = `
-                    <div class="link-icon-wrapper"><i class='bx bxs-folder-open'></i></div>
-                    <span class="link-title">${item.title}</span>`;
+        });
       }
       linksGrid.appendChild(card);
     });
@@ -507,17 +527,22 @@ document.addEventListener("DOMContentLoaded", () => {
       li.className = "manage-link-item";
       li.style.marginLeft = `${depth * 20}px`;
 
-      let iconHtml =
-        item.type === "link"
-          ? `<img src="${item.icon || `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=128`}">`
-          : `<i class='bx bxs-folder'></i>`;
+      let iconHtml;
+      if (item.type === "link") {
+        iconHtml = `<img src="${item.icon || `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=32`}" class="manage-icon">`;
+      } else {
+        iconHtml = `<svg class="icon manage-icon" style="stroke:var(--accent-color);"><use href="#icon-folder"></use></svg>`;
+      }
 
       li.innerHTML = `
-                <div class="manage-link-info">
-                    <div class="manage-link-icon">${iconHtml}</div>
-                    <span class="manage-link-title">${item.title}</span>
+                <div class="manage-item-info">
+                    ${iconHtml}
+                    <div class="manage-item-text">
+                        <div class="manage-item-title">${item.title}</div>
+                        <div class="manage-item-url">${item.type === "link" ? item.url : "Folder"}</div>
+                    </div>
                 </div>
-                <button class="delete-link-btn" data-id="${item.id}"><i class='bx bx-trash'></i></button>
+                <button class="delete-btn" data-id="${item.id}" title="Delete"><svg class="icon"><use href="#icon-trash"></use></svg></button>
             `;
       manageLinksList.appendChild(li);
 
@@ -564,6 +589,12 @@ document.addEventListener("DOMContentLoaded", () => {
     currentLang = e.target.value;
     saveState();
     applyLanguage();
+  });
+  
+  fontSelect.addEventListener("change", (e) => {
+    currentFont = e.target.value;
+    saveState();
+    applyFont();
   });
   saveTitleBtn.addEventListener("click", () => {
     const val = customTitleInput.value.trim();
@@ -655,6 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initGeneral();
   applyLanguage();
+  applyFont();
   applyBlur();
   loadWallpaper();
   renderGrid();
@@ -679,9 +711,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.key === "Escape") {
           closeSearch();
         } else if (e.key === "Enter") {
-          const query = searchInput.value.trim();
+          let query = searchInput.value.trim();
           if (query) {
-            window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            // Smart URL detection: if it matches a domain pattern, navigate directly
+            const urlPattern = /^((https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?)$/i;
+            if (urlPattern.test(query) && !query.includes(' ')) {
+              if (!query.startsWith("http://") && !query.startsWith("https://")) {
+                query = "https://" + query;
+              }
+              window.location.href = query;
+            } else {
+              window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            }
           }
         }
       }
@@ -716,4 +757,26 @@ document.addEventListener("DOMContentLoaded", () => {
   searchInput.addEventListener("input", function() {
     this.size = Math.max(15, this.value.length);
   });
+
+  // Aggressive fix for browsers automatically focusing the URL bar on New Tab
+  function stealFocus() {
+    window.focus();
+    if (document.activeElement && document.activeElement !== searchInput) {
+      document.activeElement.blur();
+    }
+    document.body.focus();
+  }
+  
+  stealFocus();
+  window.addEventListener("load", () => {
+    stealFocus();
+    // Hash trick
+    if (!window.location.hash) {
+      window.history.replaceState(null, null, '#focus');
+    }
+  });
+
+  // Mouse move trick: if the user touches the mouse, steal focus
+  window.addEventListener("mousemove", stealFocus, { once: true });
+  window.addEventListener("click", stealFocus, { once: true });
 });
