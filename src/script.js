@@ -659,4 +659,61 @@ document.addEventListener("DOMContentLoaded", () => {
   loadWallpaper();
   renderGrid();
   if (selectedThemeColor) applyThemeColor(selectedThemeColor);
+
+  // --- Rofi Search Feature ---
+  const searchOverlay = document.getElementById("searchOverlay");
+  const searchInput = document.getElementById("searchInput");
+  const mainHeader = document.getElementById("mainHeader");
+
+  function closeSearch() {
+    searchOverlay.classList.remove("active");
+    mainHeader.classList.remove("search-active");
+    searchInput.value = "";
+    searchInput.blur();
+  }
+
+  document.addEventListener("keydown", (e) => {
+    // Ignore if typing in dashboard inputs
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+      if (e.target === searchInput) {
+        if (e.key === "Escape") {
+          closeSearch();
+        } else if (e.key === "Enter") {
+          const query = searchInput.value.trim();
+          if (query) {
+            window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+          }
+        }
+      }
+      return;
+    }
+
+    // Only trigger on printable single characters, excluding modifiers
+    if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) return;
+
+    if (!searchOverlay.classList.contains("active")) {
+      searchOverlay.classList.add("active");
+      mainHeader.classList.add("search-active");
+      e.preventDefault();
+      searchInput.value = "";
+      
+      // Focus the input
+      setTimeout(() => {
+        searchInput.focus();
+        searchInput.value = e.key;
+      }, 10);
+    }
+  });
+
+  // Close search when clicking outside
+  document.addEventListener("click", (e) => {
+    if (searchOverlay.classList.contains("active") && !searchOverlay.contains(e.target)) {
+      closeSearch();
+    }
+  });
+
+  // Dynamic input sizing
+  searchInput.addEventListener("input", function() {
+    this.size = Math.max(15, this.value.length);
+  });
 });

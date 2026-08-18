@@ -18,9 +18,16 @@
     <img id="background-img" src="" alt="Background" />
     <div class="overlay"></div>
 
+
     <main class="container">
-      <header class="header">
+      <header class="header" id="mainHeader">
         <h1 class="greeting gradient-text" id="customTitleDisplay">My Setup</h1>
+        
+        <div class="rofi-search" id="searchOverlay">
+          <i class='bx bx-search rofi-icon'></i>
+          <input type="text" id="searchInput" class="rofi-input" autocomplete="off" spellcheck="false" placeholder="search..." size="15" />
+        </div>
+
         <div class="clock" id="clock">00:00</div>
       </header>
 
