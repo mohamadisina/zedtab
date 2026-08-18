@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let customTitle =
     localStorage.getItem("productTab_customTitle") || "My Setup";
   let currentFolderId = "root";
+  let editingItemId = null;
 
   let bgType = localStorage.getItem("productTab_bgType") || "random";
   let bgValue = localStorage.getItem("productTab_bgValue") || "";
@@ -425,6 +426,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return null;
   }
 
+  function findItem(id, currentList = items) {
+    for (let item of currentList) {
+      if (item.id === id) return item;
+      if (item.type === "folder") {
+        let found = findItem(id, item.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
   function deleteItem(id, currentList = items) {
     for (let i = 0; i < currentList.length; i++) {
       if (currentList[i].id === id) {
@@ -436,6 +448,45 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     return false;
+  }
+
+  function moveItem(sourceId, targetId) {
+    if (sourceId === targetId) return;
+    
+    // Find and remove source item
+    let sourceItem = null;
+    function removeSource(currentList) {
+      for (let i = 0; i < currentList.length; i++) {
+        if (currentList[i].id === sourceId) {
+          sourceItem = currentList.splice(i, 1)[0];
+          return true;
+        }
+        if (currentList[i].type === "folder" && currentList[i].children) {
+          if (removeSource(currentList[i].children)) return true;
+        }
+      }
+      return false;
+    }
+    removeSource(items);
+    if (!sourceItem) return;
+
+    // Find target and insert before it
+    function insertBeforeTarget(currentList) {
+      for (let i = 0; i < currentList.length; i++) {
+        if (currentList[i].id === targetId) {
+          currentList.splice(i, 0, sourceItem);
+          return true;
+        }
+        if (currentList[i].type === "folder" && currentList[i].children) {
+          if (insertBeforeTarget(currentList[i].children)) return true;
+        }
+      }
+      return false;
+    }
+    
+    if (!insertBeforeTarget(items)) {
+      items.push(sourceItem); // fallback
+    }
   }
 
   function collectAllFolders(list = items, prefix = "") {
@@ -526,6 +577,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const li = document.createElement("li");
       li.className = "manage-link-item";
       li.style.marginLeft = `${depth * 20}px`;
+      li.setAttribute("draggable", "true");
+      li.setAttribute("data-id", item.id);
 
       let iconHtml;
       if (item.type === "link") {
@@ -542,7 +595,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="manage-item-url">${item.type === "link" ? item.url : "Folder"}</div>
                     </div>
                 </div>
-                <button class="delete-btn" data-id="${item.id}" title="Delete"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                <div class="manage-item-actions">
+                    <button class="edit-btn" data-id="${item.id}" title="Edit"><svg class="icon"><use href="#icon-edit"></use></svg></button>
+                    <button class="delete-btn" data-id="${item.id}" title="Delete"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                </div>
             `;
       manageLinksList.appendChild(li);
 
@@ -552,7 +608,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (depth === 0) {
       handleImgErrors(manageLinksList);
-      document.querySelectorAll(".delete-link-btn").forEach((btn) => {
+      
+      document.querySelectorAll(".edit-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const id = e.currentTarget.getAttribute("data-id");
+          const item = findItem(id);
+          if (item) {
+            editingItemId = id;
+            document.getElementById("linkTitle").value = item.title;
+            if (item.type === "link") {
+              document.querySelector("input[value='link']").checked = true;
+              document.getElementById("urlGroup").style.display = "block";
+              document.getElementById("linkUrl").value = item.url;
+            } else {
+              document.querySelector("input[value='folder']").checked = true;
+              document.getElementById("urlGroup").style.display = "none";
+            }
+            document.getElementById("addLinkBtn").textContent = "Update";
+            document.getElementById("lblAddItem").textContent = "Edit Item";
+            document.getElementById("addLinkForm").scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+
+      document.querySelectorAll(".delete-btn").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           deleteItem(e.currentTarget.getAttribute("data-id"));
           saveState();
@@ -561,6 +640,8 @@ document.addEventListener("DOMContentLoaded", () => {
           updateFolderDropdown();
         });
       });
+      
+      initDragAndDrop();
     }
   }
 
@@ -659,28 +740,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addLinkForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const type = document.querySelector('input[name="itemType"]:checked').value;
-    let newItem = {
-      id: "item_" + Date.now(),
-      type: type,
-      title: linkTitleInput.value.trim(),
-    };
-    if (type === "link") {
-      let url = linkUrlInput.value.trim();
-      if (!url.startsWith("http://") && !url.startsWith("https://"))
-        url = "https://" + url;
-      newItem.url = url;
-      newItem.icon = linkIconInput.value.trim();
+    const itemType = document.querySelector('input[name="itemType"]:checked').value;
+    const title = linkTitleInput.value.trim();
+    let url = linkUrlInput.value.trim();
+    const targetFolder = targetFolderSelect.value;
+    if (itemType === "link" && !url) return;
+
+    if (editingItemId) {
+      const item = getFolder(editingItemId) || findItem(editingItemId);
+      if (item) {
+        item.title = title;
+        if (item.type === "link") {
+          if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
+          item.url = url;
+          if (document.getElementById("linkIcon")) {
+            item.icon = document.getElementById("linkIcon").value;
+          }
+        }
+      }
+      editingItemId = null;
+      document.getElementById("addLinkBtn").textContent = i18n[currentLang].addLinkBtn || "Add";
+      document.getElementById("lblAddItem").textContent = i18n[currentLang].lblAddItem || "Add Item";
     } else {
-      newItem.children = [];
+      const newItem = {
+        id: "item_" + Date.now(),
+        type: itemType,
+        title: title,
+      };
+
+      if (itemType === "link") {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
+        newItem.url = url;
+        if (document.getElementById("linkIcon")) {
+          newItem.icon = document.getElementById("linkIcon").value;
+        }
+      } else {
+        newItem.children = [];
+      }
+
+      if (targetFolder === "root") {
+        items.push(newItem);
+      } else {
+        const folder = getFolder(targetFolder);
+        if (folder) folder.children.push(newItem);
+      }
     }
 
-    getFolder(targetFolderSelect.value).children.push(newItem);
     saveState();
     renderGrid();
     renderDashboardList();
     updateFolderDropdown();
-    addLinkForm.reset();
+    e.target.reset();
     document.querySelector('input[name="itemType"][value="link"]').click();
   });
 
@@ -752,6 +862,49 @@ document.addEventListener("DOMContentLoaded", () => {
       closeSearch();
     }
   });
+
+  // Drag and drop initialization
+  function initDragAndDrop() {
+    let draggedItem = null;
+
+    const listItems = document.querySelectorAll('.manage-link-item');
+    listItems.forEach(item => {
+      item.addEventListener('dragstart', function(e) {
+        draggedItem = this;
+        setTimeout(() => this.classList.add('dragging'), 0);
+      });
+
+      item.addEventListener('dragend', function(e) {
+        this.classList.remove('dragging');
+        listItems.forEach(li => li.classList.remove('drag-over'));
+      });
+
+      item.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        if (this !== draggedItem) {
+          this.classList.add('drag-over');
+        }
+      });
+
+      item.addEventListener('dragleave', function(e) {
+        this.classList.remove('drag-over');
+      });
+
+      item.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        if (this !== draggedItem && draggedItem) {
+          const sourceId = draggedItem.getAttribute('data-id');
+          const targetId = this.getAttribute('data-id');
+          moveItem(sourceId, targetId);
+          saveState();
+          renderGrid();
+          renderDashboardList();
+          updateFolderDropdown();
+        }
+      });
+    });
+  }
 
   // Dynamic input sizing
   searchInput.addEventListener("input", function() {
