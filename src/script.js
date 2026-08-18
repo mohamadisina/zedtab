@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const clockElement = document.getElementById("clock");
+  const dateElement = document.getElementById("dateDisplay");
   const customTitleDisplay = document.getElementById("customTitleDisplay");
   const linksGrid = document.getElementById("linksGrid");
   const backgroundImg = document.getElementById("background-img");
@@ -43,7 +44,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const manageLinksList = document.getElementById("manageLinksList");
 
   let currentLang = localStorage.getItem("productTab_lang") || "en";
-  let currentFont = localStorage.getItem("productTab_font") || "system-ui, -apple-system, sans-serif";
+  let currentFont =
+    localStorage.getItem("productTab_font") ||
+    "system-ui, -apple-system, sans-serif";
+
+  let dateMode = localStorage.getItem("productTab_dateMode") || "short";
+
+  if (dateElement) {
+    dateElement.addEventListener("click", () => {
+      dateMode = dateMode === "short" ? "full" : "short";
+      localStorage.setItem("productTab_dateMode", dateMode);
+      updateClock();
+    });
+  }
   let customTitle =
     localStorage.getItem("productTab_customTitle") || "My Setup";
   let currentFolderId = "root";
@@ -238,6 +251,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const hours = String(now.getHours()).padStart(2, "0");
     const minutes = String(now.getMinutes()).padStart(2, "0");
     clockElement.textContent = `${hours}:${minutes}`;
+
+    if (dateElement) {
+      if (dateMode === "short") {
+        dateElement.textContent = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(now);
+      } else {
+        const y = new Intl.DateTimeFormat('fa-IR', { year: 'numeric' }).format(now);
+        const m = new Intl.DateTimeFormat('fa-IR', { month: 'numeric' }).format(now);
+        const d = new Intl.DateTimeFormat('fa-IR', { day: 'numeric' }).format(now);
+        dateElement.textContent = `${y}/${m}/${d}`;
+      }
+    }
   }
 
   function applyBlur() {
@@ -806,59 +830,61 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchOverlay = document.getElementById("searchOverlay");
   const searchInput = document.getElementById("searchInput");
   const mainHeader = document.getElementById("mainHeader");
+  let searchActive = false;
+
+  function openSearch(firstChar) {
+    searchActive = true;
+    searchOverlay.classList.add("active");
+    mainHeader.classList.add("search-active");
+    searchInput.value = firstChar || "";
+    searchInput.focus();
+  }
 
   function closeSearch() {
+    searchActive = false;
     searchOverlay.classList.remove("active");
     mainHeader.classList.remove("search-active");
     searchInput.value = "";
     searchInput.blur();
   }
 
-  document.addEventListener("keydown", (e) => {
-    // Ignore if typing in dashboard inputs
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
-      if (e.target === searchInput) {
-        if (e.key === "Escape") {
-          closeSearch();
-        } else if (e.key === "Enter") {
-          let query = searchInput.value.trim();
-          if (query) {
-            // Smart URL detection: if it matches a domain pattern, navigate directly
-            const urlPattern = /^((https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?)$/i;
-            if (urlPattern.test(query) && !query.includes(' ')) {
-              if (!query.startsWith("http://") && !query.startsWith("https://")) {
-                query = "https://" + query;
-              }
-              window.location.href = query;
-            } else {
-              window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-            }
-          }
-        }
+  function handleSearchSubmit() {
+    let query = searchInput.value.trim();
+    if (!query) return;
+    const urlPattern = /^((https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?)$/i;
+    if (urlPattern.test(query) && !query.includes(' ')) {
+      if (!query.startsWith("http://") && !query.startsWith("https://")) {
+        query = "https://" + query;
       }
-      return;
+      window.location.href = query;
+    } else {
+      window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
     }
+  }
 
-    // Only trigger on printable single characters, excluding modifiers
-    if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) return;
-
-    if (!searchOverlay.classList.contains("active")) {
-      searchOverlay.classList.add("active");
-      mainHeader.classList.add("search-active");
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeSearch();
       e.preventDefault();
-      searchInput.value = "";
-      
-      // Focus the input
-      setTimeout(() => {
-        searchInput.focus();
-        searchInput.value = e.key;
-      }, 10);
+    } else if (e.key === "Enter") {
+      handleSearchSubmit();
+      e.preventDefault();
     }
   });
 
-  // Close search when clicking outside
+  document.addEventListener("keydown", (e) => {
+    if (searchActive) return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+    if (dashboardModal.classList.contains("active")) return;
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.key.length !== 1) return;
+
+    e.preventDefault();
+    openSearch(e.key);
+  });
+
   document.addEventListener("click", (e) => {
-    if (searchOverlay.classList.contains("active") && !searchOverlay.contains(e.target)) {
+    if (searchActive && !searchOverlay.contains(e.target)) {
       closeSearch();
     }
   });
@@ -906,30 +932,51 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Dynamic input sizing
-  searchInput.addEventListener("input", function() {
-    this.size = Math.max(15, this.value.length);
-  });
+  // Export / Import Backup
+  const btnExportBackup = document.getElementById("btnExportBackup");
+  const btnImportBackup = document.getElementById("btnImportBackup");
 
-  // Aggressive fix for browsers automatically focusing the URL bar on New Tab
-  function stealFocus() {
-    window.focus();
-    if (document.activeElement && document.activeElement !== searchInput) {
-      document.activeElement.blur();
-    }
-    document.body.focus();
+  if (btnExportBackup) {
+    btnExportBackup.addEventListener("click", () => {
+      const data = {
+        productTab_items: localStorage.getItem("productTab_items"),
+        productTab_bgType: localStorage.getItem("productTab_bgType"),
+        productTab_bgValue: localStorage.getItem("productTab_bgValue"),
+        productTab_themeColors: localStorage.getItem("productTab_themeColors"),
+        productTab_font: localStorage.getItem("productTab_font"),
+        productTab_customTitle: localStorage.getItem("productTab_customTitle"),
+        productTab_blur: localStorage.getItem("productTab_blur"),
+        productTab_lang: localStorage.getItem("productTab_lang")
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `zed_tab_backup_${new Date().getTime()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   }
-  
-  stealFocus();
-  window.addEventListener("load", () => {
-    stealFocus();
-    // Hash trick
-    if (!window.location.hash) {
-      window.history.replaceState(null, null, '#focus');
-    }
-  });
 
-  // Mouse move trick: if the user touches the mouse, steal focus
-  window.addEventListener("mousemove", stealFocus, { once: true });
-  window.addEventListener("click", stealFocus, { once: true });
+  if (btnImportBackup) {
+    btnImportBackup.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          for (let key in data) {
+            if (data[key]) {
+              localStorage.setItem(key, data[key]);
+            }
+          }
+          window.location.reload();
+        } catch (error) {
+          console.error("Invalid backup file");
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
 });
