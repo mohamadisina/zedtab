@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Tab</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+  </head>
+  <body>
+    <img id="background-img" crossorigin="anonymous" src="" alt="Background" />
+    <div class="overlay"></div>
+
+    <main class="container">
+      <!-- header: -->
+      <header class="header">
+        <h1 class="greeting gradient-text" id="customTitleDisplay">My Setup</h1>
+        <div class="clock" id="clock">00:00</div>
+      </header>
+
+      <!-- links -->
+      <section class="links-section">
+        <div class="breadcrumb" id="breadcrumb" style="display: none">
+          <button id="backBtn" class="back-btn">
+            <i class="bx bx-chevron-left"></i> <span id="backText">Back</span>
+          </button>
+          <span class="current-folder-name" id="currentFolderName"></span>
+        </div>
+        <div class="links-grid" id="linksGrid"></div>
+      </section>
+    </main>
+
+    <!-- floating -->
+    <button class="fab" id="openDashboardBtn" title="Settings">
+      <i class="bx bx-slider-alt"></i>
+    </button>
+
+    <!-- dashboard -->
+    <div class="modal-overlay" id="dashboardModal">
+      <div class="dashboard-window">
+        <!-- sidebar -->
+        <aside class="dashboard-sidebar">
+          <div class="sidebar-header">
+            <h2 id="dashTitle">Settings</h2>
+          </div>
+          <nav class="sidebar-nav">
+            <button class="nav-btn active" data-tab="tab-general">
+              <i class="bx bx-cog"></i> <span id="navGeneral">General</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-appearance">
+              <i class="bx bx-palette"></i>
+              <span id="navAppearance">Appearance</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-bookmarks">
+              <i class="bx bx-bookmarks"></i>
+              <span id="navBookmarks">Bookmarks</span>
+            </button>
+          </nav>
+        </aside>
+
+        <!-- main Content -->
+        <div class="dashboard-main">
+          <header class="main-header">
+            <h3 id="currentTabTitle">General</h3>
+            <button class="close-btn" id="closeDashboardBtn">
+              <i class="bx bx-x"></i>
+            </button>
+          </header>
+
+          <div class="dashboard-content">
+            <!-- general Tab -->
+            <div class="tab-pane active" id="tab-general">
+              <div class="form-group">
+                <label for="customTitleInput" id="lblCustomTitle"
+                  >Main Title</label
+                >
+                <input
+                  type="text"
+                  id="customTitleInput"
+                  placeholder="e.g. Focus, My Setup"
+                />
+                <button class="btn primary-btn mt-2" id="saveTitleBtn">
+                  Save Title
+                </button>
+              </div>
+              <hr class="divider" />
+              <div class="form-group">
+                <label for="langSelect" id="lblLanguage">Language</label>
+                <select id="langSelect" class="styled-select">
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fa">فارسی</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- appearance Tab -->
+            <div class="tab-pane" id="tab-appearance">
+              <h4 id="lblBackground">Background</h4>
+
+              <!-- wallpaper Options -->
+              <div class="wallpaper-options">
+                <button class="wall-opt-btn" id="btnWallRandom">
+                  <i class="bx bx-shuffle"></i> Random
+                </button>
+                <button class="wall-opt-btn" id="btnWallUrlToggle">
+                  <i class="bx bx-link"></i> URL
+                </button>
+                <label class="wall-opt-btn">
+                  <i class="bx bx-upload"></i> Upload
+                  <input
+                    type="file"
+                    id="wallpaperUpload"
+                    accept="image/*"
+                    style="display: none"
+                  />
+                </label>
+              </div>
+
+              <div
+                class="form-group mt-2"
+                id="urlInputContainer"
+                style="display: none"
+              >
+                <input
+                  type="url"
+                  id="wallpaperUrlInput"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <button class="btn primary-btn mt-2" id="saveWallUrlBtn">
+                  Apply URL
+                </button>
+              </div>
+
+              <hr class="divider" />
+
+              <h4 id="lblThemeColors">Theme Palette</h4>
+              <p class="helper-text" id="lblThemeHelper">
+                Colors  from your background.
+              </p>
+
+              <div class="palette-container" id="paletteContainer"></div>
+            </div>
+
+            <!-- bookmarks Tab -->
+            <div class="tab-pane" id="tab-bookmarks">
+              <h4 id="lblAddItem">Add Item</h4>
+              <div class="type-toggle">
+                <label
+                  ><input type="radio" name="itemType" value="link" checked />
+                  <span id="lblLink">Link</span></label
+                >
+                <label
+                  ><input type="radio" name="itemType" value="folder" />
+                  <span id="lblFolder">Folder</span></label
+                >
+              </div>
+
+              <form id="addLinkForm" class="add-link-form">
+                <div class="form-group">
+                  <label for="linkTitle" id="lblItemTitle">Title</label>
+                  <input
+                    type="text"
+                    id="linkTitle"
+                    placeholder="e.g. GitHub"
+                    required
+                  />
+                </div>
+                <div class="form-group" id="urlGroup">
+                  <label for="linkUrl">URL</label>
+                  <input type="text" id="linkUrl" placeholder="example.com" />
+                </div>
+                <div class="form-group" id="iconGroup">
+                  <label for="linkIcon" id="lblItemIcon"
+                    >Icon URL (optional)</label
+                  >
+                  <input
+                    type="url"
+                    id="linkIcon"
+                    placeholder="https://example.com/icon.png"
+                  />
+                  <small class="helper-text" id="lblIconHelper"
+                    >Leave blank to auto-fetch.</small
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="targetFolder" id="lblTargetFolder"
+                    >Target Folder</label
+                  >
+                  <select id="targetFolder" class="styled-select">
+                    <option value="main">Main</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  class="btn primary-btn w-100"
+                  id="btnAddItem"
+                >
+                  Add Item
+                </button>
+              </form>
+
+              <hr class="divider" />
+              <h4 id="lblYourItems">Your Items</h4>
+              <ul class="manage-links-list" id="manageLinksList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
