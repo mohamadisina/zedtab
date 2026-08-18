@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const customTitleDisplay = document.getElementById("customTitleDisplay");
   const linksGrid = document.getElementById("linksGrid");
   const backgroundImg = document.getElementById("background-img");
+  const backgroundCanvas = document.getElementById("background-canvas");
+  const canvasCtx = backgroundCanvas.getContext("2d");
 
   const breadcrumb = document.getElementById("breadcrumb");
   const backBtn = document.getElementById("backBtn");
@@ -314,8 +316,32 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(() => callback(null));
   }
 
+  function drawToCanvas(imgSource, callback) {
+    backgroundImg.src = imgSource;
+    backgroundImg.onload = () => {
+      // Downscale to 25% to force natural pixel blending and remove banding
+      backgroundCanvas.width = backgroundImg.width / 4;
+      backgroundCanvas.height = backgroundImg.height / 4;
+      canvasCtx.drawImage(
+        backgroundImg,
+        0,
+        0,
+        backgroundCanvas.width,
+        backgroundCanvas.height
+      );
+      backgroundCanvas.classList.add("loaded");
+      if (callback) callback();
+    };
+    backgroundImg.onerror = () => {
+      if (bgType !== "random") {
+        bgType = "random";
+        loadWallpaper();
+      }
+    };
+  }
+
   function loadWallpaper() {
-    backgroundImg.classList.remove("loaded");
+    backgroundCanvas.classList.remove("loaded");
 
     if (bgType === "random") {
       const seed = Math.floor(Math.random() * 1000);
@@ -323,42 +349,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       fetchImageAsDataUrl(url, (dataUrl) => {
         if (dataUrl) {
-          backgroundImg.src = dataUrl;
-          backgroundImg.onload = () => {
-            backgroundImg.classList.add("loaded");
-            extractPaletteFromCanvas(dataUrl);
-          };
+          drawToCanvas(dataUrl, () => extractPaletteFromCanvas(dataUrl));
         }
       });
     } else if (bgType === "url") {
       fetchImageAsDataUrl(bgValue, (dataUrl) => {
         if (dataUrl) {
-          backgroundImg.src = dataUrl;
-          backgroundImg.onload = () => {
-            backgroundImg.classList.add("loaded");
-            extractPaletteFromCanvas(dataUrl);
-          };
+          drawToCanvas(dataUrl, () => extractPaletteFromCanvas(dataUrl));
         } else {
-          backgroundImg.src = bgValue;
-          backgroundImg.onload = () => {
-            backgroundImg.classList.add("loaded");
-          };
+          drawToCanvas(bgValue);
         }
       });
     } else if (bgType === "base64") {
-      backgroundImg.src = bgValue;
-      backgroundImg.onload = () => {
-        backgroundImg.classList.add("loaded");
-        extractPaletteFromCanvas(bgValue);
-      };
+      drawToCanvas(bgValue, () => extractPaletteFromCanvas(bgValue));
     }
-
-    backgroundImg.onerror = () => {
-      if (bgType !== "random") {
-        bgType = "random";
-        loadWallpaper();
-      }
-    };
   }
 
   function compressAndSaveImage(file) {
