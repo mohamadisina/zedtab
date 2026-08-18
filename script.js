@@ -28,6 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const wallpaperUpload = document.getElementById("wallpaperUpload");
   const paletteContainer = document.getElementById("paletteContainer");
 
+  const blurSlider = document.getElementById("blurSlider");
+  const blurValue = document.getElementById("blurValue");
+
   const addLinkForm = document.getElementById("addLinkForm");
   const typeRadios = document.getElementsByName("itemType");
   const linkTitleInput = document.getElementById("linkTitle");
@@ -43,9 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.getItem("productTab_customTitle") || "My Setup";
   let currentFolderId = "root";
 
-  let bgType = localStorage.getItem("productTab_bgType") || "random"; 
+  let bgType = localStorage.getItem("productTab_bgType") || "random";
   let bgValue = localStorage.getItem("productTab_bgValue") || "";
   let selectedThemeColor = localStorage.getItem("productTab_themeColor") || "";
+  let blurIntensity = parseInt(localStorage.getItem("productTab_blur") || "8");
 
   const defaultData = [
     {
@@ -91,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSaved: "Saved!",
       lblLanguage: "Language",
       lblBackground: "Background",
+      lblBlur: "Blur Intensity",
       lblThemeColors: "Theme Palette",
       lblThemeHelper: "Colors extracted from your background.",
       lblAddItem: "Add Item",
@@ -115,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSaved: "¡Guardado!",
       lblLanguage: "Idioma",
       lblBackground: "Fondo",
+      lblBlur: "Intensidad de Desenfoque",
       lblThemeColors: "Paleta de Tema",
       lblThemeHelper: "Colores extraídos de tu fondo.",
       lblAddItem: "Añadir Nuevo",
@@ -139,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSaved: "ذخیره شد!",
       lblLanguage: "زبان",
       lblBackground: "پس زمینه",
+      lblBlur: "شدت تاری",
       lblThemeColors: "پالت رنگ",
       lblThemeHelper: "رنگ‌های استخراج شده از تصویر",
       lblAddItem: "افزودن آیتم",
@@ -170,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("lblLanguage").textContent = lang.lblLanguage;
 
     document.getElementById("lblBackground").textContent = lang.lblBackground;
+    document.getElementById("lblBlur").textContent = lang.lblBlur;
     document.getElementById("lblThemeColors").textContent = lang.lblThemeColors;
     document.getElementById("lblThemeHelper").textContent = lang.lblThemeHelper;
 
@@ -201,6 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (bgType !== "random")
       localStorage.setItem("productTab_bgValue", bgValue);
     localStorage.setItem("productTab_themeColor", selectedThemeColor);
+    localStorage.setItem("productTab_blur", String(blurIntensity));
     localStorage.setItem("productTab_items", JSON.stringify(items));
   }
 
@@ -216,6 +225,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const hours = String(now.getHours()).padStart(2, "0");
     const minutes = String(now.getMinutes()).padStart(2, "0");
     clockElement.textContent = `${hours}:${minutes}`;
+  }
+
+  function applyBlur() {
+    document.documentElement.style.setProperty(
+      "--blur-intensity",
+      blurIntensity + "px",
+    );
+    blurSlider.value = blurIntensity;
+    blurValue.textContent = blurIntensity + "px";
   }
 
   function applyThemeColor(rgbString) {
@@ -234,44 +252,66 @@ document.addEventListener("DOMContentLoaded", () => {
     saveState();
   }
 
-  function extractPalette() {
-    try {
-      if (typeof ColorThief !== "undefined") {
-        const colorThief = new ColorThief();
-        const palette = colorThief.getPalette(backgroundImg, 6);
-        paletteContainer.innerHTML = "";
+  function extractPaletteFromCanvas(imageSource) {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
 
-        if (palette && palette.length > 0) {
-          palette.forEach((color) => {
-            const rgbString = `${color[0]}, ${color[1]}, ${color[2]}`;
-            const swatch = document.createElement("div");
-            swatch.className = "color-swatch";
-            swatch.style.background = `rgb(${rgbString})`;
-            swatch.dataset.rgb = rgbString;
-            if (selectedThemeColor === rgbString)
-              swatch.classList.add("active");
+      try {
+        if (typeof ColorThief !== "undefined") {
+          const colorThief = new ColorThief();
+          const palette = colorThief.getPalette(canvas, 6);
+          paletteContainer.innerHTML = "";
 
-            swatch.addEventListener("click", () => applyThemeColor(rgbString));
-            paletteContainer.appendChild(swatch);
-          });
+          if (palette && palette.length > 0) {
+            palette.forEach((color) => {
+              const rgbString = `${color[0]}, ${color[1]}, ${color[2]}`;
+              const swatch = document.createElement("div");
+              swatch.className = "color-swatch";
+              swatch.style.background = `rgb(${rgbString})`;
+              swatch.dataset.rgb = rgbString;
+              if (selectedThemeColor === rgbString)
+                swatch.classList.add("active");
 
-          // If no valid selected theme exists, pick the first one automatically
-          if (
-            !selectedThemeColor ||
-            !palette.find(
-              (c) => `${c[0]}, ${c[1]}, ${c[2]}` === selectedThemeColor,
-            )
-          ) {
-            applyThemeColor(
-              `${palette[0][0]}, ${palette[0][1]}, ${palette[0][2]}`,
-            );
+              swatch.addEventListener("click", () =>
+                applyThemeColor(rgbString),
+              );
+              paletteContainer.appendChild(swatch);
+            });
+
+            if (
+              !selectedThemeColor ||
+              !palette.find(
+                (c) => `${c[0]}, ${c[1]}, ${c[2]}` === selectedThemeColor,
+              )
+            ) {
+              applyThemeColor(
+                `${palette[0][0]}, ${palette[0][1]}, ${palette[0][2]}`,
+              );
+            }
           }
         }
+      } catch (e) {
+        paletteContainer.innerHTML =
+          '<p class="helper-text">Could not extract colors from this image.</p>';
       }
-    } catch (e) {
-      console.log("Color extraction failed (likely CORS).", e);
-      paletteContainer.innerHTML = `<p class="helper-text">Cannot extract colors from this image due to security restrictions.</p>`;
-    }
+    };
+    img.src = imageSource;
+  }
+
+  function fetchImageAsDataUrl(url, callback) {
+    fetch(url)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => callback(reader.result);
+        reader.readAsDataURL(blob);
+      })
+      .catch(() => callback(null));
   }
 
   function loadWallpaper() {
@@ -279,20 +319,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (bgType === "random") {
       const seed = Math.floor(Math.random() * 1000);
-      backgroundImg.src = `https://picsum.photos/1920/1080?random=${seed}`;
+      const url = `https://picsum.photos/1920/1080?random=${seed}`;
+
+      fetchImageAsDataUrl(url, (dataUrl) => {
+        if (dataUrl) {
+          backgroundImg.src = dataUrl;
+          backgroundImg.onload = () => {
+            backgroundImg.classList.add("loaded");
+            extractPaletteFromCanvas(dataUrl);
+          };
+        }
+      });
     } else if (bgType === "url") {
-      backgroundImg.src = bgValue;
+      fetchImageAsDataUrl(bgValue, (dataUrl) => {
+        if (dataUrl) {
+          backgroundImg.src = dataUrl;
+          backgroundImg.onload = () => {
+            backgroundImg.classList.add("loaded");
+            extractPaletteFromCanvas(dataUrl);
+          };
+        } else {
+          backgroundImg.src = bgValue;
+          backgroundImg.onload = () => {
+            backgroundImg.classList.add("loaded");
+          };
+        }
+      });
     } else if (bgType === "base64") {
       backgroundImg.src = bgValue;
+      backgroundImg.onload = () => {
+        backgroundImg.classList.add("loaded");
+        extractPaletteFromCanvas(bgValue);
+      };
     }
 
-    backgroundImg.onload = () => {
-      backgroundImg.classList.add("loaded");
-      extractPalette();
-    };
     backgroundImg.onerror = () => {
-      // fallback if fails
-      console.error("Failed to load background image.");
       if (bgType !== "random") {
         bgType = "random";
         loadWallpaper();
@@ -390,6 +451,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function handleImgErrors(container) {
+    container.querySelectorAll("img").forEach((img) => {
+      img.addEventListener("error", function () {
+        this.src =
+          "https://unpkg.com/boxicons@2.1.4/svg/regular/bx-globe.svg";
+        this.style.filter = "invert(1)";
+      });
+    });
+  }
+
   function renderGrid() {
     linksGrid.innerHTML = "";
     const folder = getFolder(currentFolderId);
@@ -412,7 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const iconUrl =
           item.icon && item.icon.trim() !== "" ? item.icon : fallbackIcon;
         card.innerHTML = `
-                    <div class="link-icon-wrapper"><img src="${iconUrl}" class="link-icon" onerror="this.src='https://unpkg.com/boxicons@2.1.4/svg/regular/bx-globe.svg'; this.style.filter='invert(1)';"></div>
+                    <div class="link-icon-wrapper"><img src="${iconUrl}" class="link-icon"></div>
                     <span class="link-title">${item.title}</span>`;
       } else if (item.type === "folder") {
         card.onclick = (e) => {
@@ -426,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       linksGrid.appendChild(card);
     });
+    handleImgErrors(linksGrid);
   }
 
   function renderDashboardList(list = items, depth = 0) {
@@ -437,7 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let iconHtml =
         item.type === "link"
-          ? `<img src="${item.icon || `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=128`}" onerror="this.src='https://unpkg.com/boxicons@2.1.4/svg/regular/bx-globe.svg'; this.style.filter='invert(1)';">`
+          ? `<img src="${item.icon || `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=128`}">`
           : `<i class='bx bxs-folder'></i>`;
 
       li.innerHTML = `
@@ -454,6 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (depth === 0) {
+      handleImgErrors(manageLinksList);
       document.querySelectorAll(".delete-link-btn").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           deleteItem(e.currentTarget.getAttribute("data-id"));
@@ -529,6 +602,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (file) compressAndSaveImage(file);
   });
 
+  blurSlider.addEventListener("input", (e) => {
+    blurIntensity = parseInt(e.target.value);
+    applyBlur();
+    saveState();
+  });
+
   typeRadios.forEach((r) =>
     r.addEventListener("change", (e) => {
       if (e.target.value === "folder") {
@@ -576,6 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initGeneral();
   applyLanguage();
+  applyBlur();
   loadWallpaper();
   renderGrid();
   if (selectedThemeColor) applyThemeColor(selectedThemeColor);

@@ -13,20 +13,18 @@
       href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
       rel="stylesheet"
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <script src="color-thief.js"></script>
   </head>
   <body>
-    <img id="background-img" crossorigin="anonymous" src="" alt="Background" />
+    <img id="background-img" src="" alt="Background" />
     <div class="overlay"></div>
 
     <main class="container">
-      <!-- header: -->
       <header class="header">
         <h1 class="greeting gradient-text" id="customTitleDisplay">My Setup</h1>
         <div class="clock" id="clock">00:00</div>
       </header>
 
-      <!-- links -->
       <section class="links-section">
         <div class="breadcrumb" id="breadcrumb" style="display: none">
           <button id="backBtn" class="back-btn">
@@ -38,15 +36,12 @@
       </section>
     </main>
 
-    <!-- floating -->
     <button class="fab" id="openDashboardBtn" title="Settings">
       <i class="bx bx-slider-alt"></i>
     </button>
 
-    <!-- dashboard -->
     <div class="modal-overlay" id="dashboardModal">
       <div class="dashboard-window">
-        <!-- sidebar -->
         <aside class="dashboard-sidebar">
           <div class="sidebar-header">
             <h2 id="dashTitle">Settings</h2>
@@ -66,7 +61,6 @@
           </nav>
         </aside>
 
-        <!-- main Content -->
         <div class="dashboard-main">
           <header class="main-header">
             <h3 id="currentTabTitle">General</h3>
@@ -76,12 +70,9 @@
           </header>
 
           <div class="dashboard-content">
-            <!-- general Tab -->
             <div class="tab-pane active" id="tab-general">
               <div class="form-group">
-                <label for="customTitleInput" id="lblCustomTitle"
-                  >Main Title</label
-                >
+                <label for="customTitleInput" id="lblCustomTitle">Main Title</label>
                 <input
                   type="text"
                   id="customTitleInput"
@@ -102,11 +93,9 @@
               </div>
             </div>
 
-            <!-- appearance Tab -->
             <div class="tab-pane" id="tab-appearance">
               <h4 id="lblBackground">Background</h4>
 
-              <!-- wallpaper Options -->
               <div class="wallpaper-options">
                 <button class="wall-opt-btn" id="btnWallRandom">
                   <i class="bx bx-shuffle"></i> Random
@@ -140,17 +129,32 @@
                 </button>
               </div>
 
+              <div class="blur-control">
+                <h4 id="lblBlur">Blur Intensity</h4>
+                <div class="blur-slider-container">
+                  <input
+                    type="range"
+                    id="blurSlider"
+                    class="blur-slider"
+                    min="0"
+                    max="30"
+                    value="8"
+                    step="1"
+                  />
+                  <span class="blur-value" id="blurValue">8px</span>
+                </div>
+              </div>
+
               <hr class="divider" />
 
               <h4 id="lblThemeColors">Theme Palette</h4>
               <p class="helper-text" id="lblThemeHelper">
-                Colors  from your background.
+                Colors from your background.
               </p>
 
               <div class="palette-container" id="paletteContainer"></div>
             </div>
 
-            <!-- bookmarks Tab -->
             <div class="tab-pane" id="tab-bookmarks">
               <h4 id="lblAddItem">Add Item</h4>
               <div class="type-toggle">
@@ -179,22 +183,16 @@
                   <input type="text" id="linkUrl" placeholder="example.com" />
                 </div>
                 <div class="form-group" id="iconGroup">
-                  <label for="linkIcon" id="lblItemIcon"
-                    >Icon URL (optional)</label
-                  >
+                  <label for="linkIcon" id="lblItemIcon">Icon URL (optional)</label>
                   <input
                     type="url"
                     id="linkIcon"
                     placeholder="https://example.com/icon.png"
                   />
-                  <small class="helper-text" id="lblIconHelper"
-                    >Leave blank to auto-fetch.</small
-                  >
+                  <small class="helper-text" id="lblIconHelper">Leave blank to auto-fetch.</small>
                 </div>
                 <div class="form-group">
-                  <label for="targetFolder" id="lblTargetFolder"
-                    >Target Folder</label
-                  >
+                  <label for="targetFolder" id="lblTargetFolder">Target Folder</label>
                   <select id="targetFolder" class="styled-select">
                     <option value="main">Main</option>
                   </select>
