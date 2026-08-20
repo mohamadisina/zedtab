@@ -22,7 +22,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const customTitleInput = document.getElementById("customTitleInput");
   const saveTitleBtn = document.getElementById("saveTitleBtn");
 
-  const btnWallRandom = document.getElementById("btnWallRandom");
+  const btnWallColorToggle = document.getElementById("btnWallColorToggle");
+  const colorInputContainer = document.getElementById("colorInputContainer");
+  const solidColorPicker = document.getElementById("solidColorPicker");
+  const solidColorHex = document.getElementById("solidColorHex");
+  const saveWallColorBtn = document.getElementById("saveWallColorBtn");
+
   const btnWallUrlToggle = document.getElementById("btnWallUrlToggle");
   const urlInputContainer = document.getElementById("urlInputContainer");
   const wallpaperUrlInput = document.getElementById("wallpaperUrlInput");
@@ -62,8 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentFolderId = "root";
   let editingItemId = null;
 
-  let bgType = localStorage.getItem("productTab_bgType") || "random";
-  let bgValue = localStorage.getItem("productTab_bgValue") || "";
+  let bgType = localStorage.getItem("productTab_bgType") || "color";
+  let bgValue = localStorage.getItem("productTab_bgValue") || "#0f141c";
   let selectedThemeColor = localStorage.getItem("productTab_themeColor") || "";
   let blurIntensity = parseInt(localStorage.getItem("productTab_blur") || "8");
 
@@ -227,8 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("productTab_font", currentFont);
     localStorage.setItem("productTab_customTitle", customTitle);
     localStorage.setItem("productTab_bgType", bgType);
-    if (bgType !== "random")
-      localStorage.setItem("productTab_bgValue", bgValue);
+    localStorage.setItem("productTab_bgValue", bgValue);
     localStorage.setItem("productTab_themeColor", selectedThemeColor);
     localStorage.setItem("productTab_blur", String(blurIntensity));
     localStorage.setItem("productTab_items", JSON.stringify(items));
@@ -253,9 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clockElement.textContent = `${hours}:${minutes}`;
 
     if (dateElement) {
-      const jalaliWeekdays = { '\u06cc\u06a9\u200c\u0634\u0646\u0628\u0647': 'Yekshanbe', '\u062f\u0648\u0634\u0646\u0628\u0647': 'Doshanbe', '\u0633\u0647\u200c\u0634\u0646\u0628\u0647': 'Seshanbe', '\u0686\u0647\u0627\u0631\u0634\u0646\u0628\u0647': 'Chaharshanbe', '\u067e\u0646\u062c\u200c\u0634\u0646\u0628\u0647': 'Panjshanbe', '\u062c\u0645\u0639\u0647': 'Jome', '\u0634\u0646\u0628\u0647': 'Shanbe' };
-      const faWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(now);
-      const enWeekday = jalaliWeekdays[faWeekday] || faWeekday;
+      const enWeekday = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
       if (dateMode === "short") {
         dateElement.textContent = enWeekday;
       } else {
@@ -354,48 +356,81 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(() => callback(null));
   }
 
+  function generateSolidPalette(hex) {
+    paletteContainer.innerHTML = "";
+    
+    // Parse hex
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return;
+    
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+
+    // Create 5 shade variations
+    const shades = [
+      { r: Math.min(255, r + 45), g: Math.min(255, g + 45), b: Math.min(255, b + 45) },
+      { r: Math.min(255, r + 20), g: Math.min(255, g + 20), b: Math.min(255, b + 20) },
+      { r, g, b },
+      { r: Math.max(0, r - 20), g: Math.max(0, g - 20), b: Math.max(0, b - 20) },
+      { r: Math.max(0, r - 45), g: Math.max(0, g - 45), b: Math.max(0, b - 45) }
+    ];
+
+    shades.forEach(color => {
+      const rgbString = `${color.r}, ${color.g}, ${color.b}`;
+      const swatch = document.createElement("div");
+      swatch.className = "color-swatch";
+      swatch.style.background = `rgb(${rgbString})`;
+      if (selectedThemeColor === rgbString) swatch.classList.add("active");
+      
+      swatch.addEventListener("click", () => applyThemeColor(rgbString));
+      paletteContainer.appendChild(swatch);
+    });
+  }
+
   function loadWallpaper() {
     backgroundImg.classList.remove("loaded");
 
-    if (bgType === "random") {
-      const seed = Math.floor(Math.random() * 1000);
-      const url = `https://picsum.photos/1920/1080?random=${seed}`;
+    if (bgType === "color") {
+      document.body.classList.add("solid-mode");
+      backgroundImg.style.display = "none";
+      document.body.style.backgroundColor = bgValue || "#0f141c";
+      
+      generateSolidPalette(bgValue || "#0f141c");
+      if (!selectedThemeColor) applyThemeColor(bgValue || "#0f141c");
+    } else {
+      document.body.classList.remove("solid-mode");
+      backgroundImg.style.display = "block";
+      document.body.style.backgroundColor = "#000";
 
-      fetchImageAsDataUrl(url, (dataUrl) => {
-        if (dataUrl) {
-          backgroundImg.src = dataUrl;
-          backgroundImg.onload = () => {
-            backgroundImg.classList.add("loaded");
-            extractPaletteFromCanvas(dataUrl);
-          };
-        }
-      });
-    } else if (bgType === "url") {
-      fetchImageAsDataUrl(bgValue, (dataUrl) => {
-        if (dataUrl) {
-          backgroundImg.src = dataUrl;
-          backgroundImg.onload = () => {
-            backgroundImg.classList.add("loaded");
-            extractPaletteFromCanvas(dataUrl);
-          };
-        } else {
-          backgroundImg.src = bgValue;
-          backgroundImg.onload = () => {
-            backgroundImg.classList.add("loaded");
-          };
-        }
-      });
-    } else if (bgType === "base64") {
-      backgroundImg.src = bgValue;
-      backgroundImg.onload = () => {
-        backgroundImg.classList.add("loaded");
-        extractPaletteFromCanvas(bgValue);
-      };
+      if (bgType === "url") {
+        fetchImageAsDataUrl(bgValue, (dataUrl) => {
+          if (dataUrl) {
+            backgroundImg.src = dataUrl;
+            backgroundImg.onload = () => {
+              backgroundImg.classList.add("loaded");
+              extractPaletteFromCanvas(dataUrl);
+            };
+          } else {
+            backgroundImg.src = bgValue;
+            backgroundImg.onload = () => {
+              backgroundImg.classList.add("loaded");
+            };
+          }
+        });
+      } else if (bgType === "base64") {
+        backgroundImg.src = bgValue;
+        backgroundImg.onload = () => {
+          backgroundImg.classList.add("loaded");
+          extractPaletteFromCanvas(bgValue);
+        };
+      }
     }
 
     backgroundImg.onerror = () => {
-      if (bgType !== "random") {
-        bgType = "random";
+      if (bgType !== "color") {
+        bgType = "color";
+        bgValue = "#0f141c";
         loadWallpaper();
       }
     };
@@ -718,15 +753,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  btnWallRandom.addEventListener("click", () => {
-    bgType = "random";
-    saveState();
-    loadWallpaper();
+  btnWallColorToggle.addEventListener("click", () => {
+    colorInputContainer.style.display =
+      colorInputContainer.style.display === "none" ? "block" : "none";
     urlInputContainer.style.display = "none";
+  });
+  
+  solidColorPicker.addEventListener("input", (e) => {
+    solidColorHex.value = e.target.value;
+  });
+  
+  solidColorHex.addEventListener("input", (e) => {
+    let val = e.target.value;
+    if (!val.startsWith("#")) val = "#" + val;
+    if (/^#[0-9A-Fa-f]{6}$/i.test(val)) {
+      solidColorPicker.value = val;
+    }
+  });
+  
+  saveWallColorBtn.addEventListener("click", () => {
+    let val = solidColorHex.value;
+    if (!val.startsWith("#")) val = "#" + val;
+    if (/^#[0-9A-Fa-f]{6}$/i.test(val)) {
+      bgType = "color";
+      bgValue = val;
+      saveState();
+      loadWallpaper();
+      colorInputContainer.style.display = "none";
+    }
   });
   btnWallUrlToggle.addEventListener("click", () => {
     urlInputContainer.style.display =
       urlInputContainer.style.display === "none" ? "block" : "none";
+    colorInputContainer.style.display = "none";
   });
   saveWallUrlBtn.addEventListener("click", () => {
     if (wallpaperUrlInput.value.trim()) {
@@ -827,6 +886,12 @@ document.addEventListener("DOMContentLoaded", () => {
   applyBlur();
   loadWallpaper();
   renderGrid();
+  
+  if (bgType === "color" && /^#[0-9A-Fa-f]{6}$/i.test(bgValue)) {
+    solidColorPicker.value = bgValue;
+    solidColorHex.value = bgValue;
+  }
+  
   if (selectedThemeColor) applyThemeColor(selectedThemeColor);
 
   // --- Rofi Search Feature ---

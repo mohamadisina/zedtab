@@ -27,7 +27,7 @@
       <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></symbol>
     </svg>
     <img id="background-img" src="" alt="Background" />
-    <div class="overlay"></div>
+    <div class="overlay" id="bgOverlay"></div>
 
 
     <main class="container">
@@ -152,8 +152,8 @@
               </div>
 
               <div class="wallpaper-options">
-                <button class="wall-opt-btn" id="btnWallRandom">
-                  <svg class="icon"><use href="#icon-shuffle"></use></svg> Random
+                <button class="wall-opt-btn" id="btnWallColorToggle">
+                  <svg class="icon"><use href="#icon-palette"></use></svg> Solid Color
                 </button>
                 <button class="wall-opt-btn" id="btnWallUrlToggle">
                   <svg class="icon"><use href="#icon-link"></use></svg> URL
@@ -167,6 +167,21 @@
                     style="display: none"
                   />
                 </label>
+              </div>
+
+              <div
+                class="form-group mt-2 glass-panel"
+                id="colorInputContainer"
+                style="display: none"
+              >
+                <label id="lblSolidColor">Choose a color or enter HEX</label>
+                <div class="color-picker-wrapper">
+                  <input type="color" id="solidColorPicker" value="#0f141c" />
+                  <input type="text" id="solidColorHex" value="#0f141c" placeholder="#HEX" maxlength="7" />
+                </div>
+                <button class="btn primary-btn mt-2" id="saveWallColorBtn">
+                  Apply Color
+                </button>
               </div>
 
               <div

@@ -12,8 +12,5 @@
   ],
   "host_permissions": [
     "https://suggestqueries.google.com/*"
-  ],
-  "icons": {
-    "128": "zed-tab.png"
-  }
+  ]
 }
