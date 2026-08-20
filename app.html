@@ -134,8 +134,11 @@
               <h4 id="lblBackground">Background</h4>
               
               <div class="form-group">
-                <label for="fontSelect" id="lblFont">Font Family</label>
-                <select id="fontSelect" class="styled-select">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label for="fontSelect" id="lblFont">Font Family</label>
+                  <button id="btnLoadFonts" class="btn" style="padding: 2px 8px; font-size: 0.8rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Load System Fonts</button>
+                </div>
+                <select id="fontSelect" class="styled-select" style="margin-top: 0.5rem;">
                   <option value="system-ui, -apple-system, sans-serif">System Default</option>
                   <option value="Arial, Helvetica, sans-serif">Arial</option>
                   <option value="'Segoe UI', sans-serif">Segoe UI</option>

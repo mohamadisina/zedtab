@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const langSelect = document.getElementById("langSelect");
   const fontSelect = document.getElementById("fontSelect");
+  const btnLoadFonts = document.getElementById("btnLoadFonts");
   const customTitleInput = document.getElementById("customTitleInput");
   const saveTitleBtn = document.getElementById("saveTitleBtn");
 
@@ -247,6 +248,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function applyFont() {
     document.body.style.fontFamily = currentFont;
+    
+    // Ensure the selected font exists in the dropdown options
+    let optionExists = Array.from(fontSelect.options).some(opt => opt.value === currentFont);
+    if (!optionExists) {
+      const opt = document.createElement("option");
+      opt.value = currentFont;
+      opt.textContent = currentFont.split(',')[0].replace(/['"]/g, '');
+      fontSelect.appendChild(opt);
+    }
+    
     fontSelect.value = currentFont;
   }
 
@@ -738,6 +749,40 @@ document.addEventListener("DOMContentLoaded", () => {
     currentFont = e.target.value;
     saveState();
     applyFont();
+  });
+  
+  btnLoadFonts.addEventListener("click", async () => {
+    if (!("queryLocalFonts" in window)) {
+      alert("Local Fonts API is not supported in this browser.");
+      return;
+    }
+    try {
+      const fonts = await window.queryLocalFonts();
+      
+      const currentVal = fontSelect.value;
+      fontSelect.innerHTML = `
+        <option value="system-ui, -apple-system, sans-serif">System Default</option>
+        <option value="'Vazirmatn', Tahoma, sans-serif">Vazirmatn (فارسی)</option>
+      `;
+      
+      const fontSet = new Set();
+      fonts.forEach(font => fontSet.add(font.family));
+      
+      Array.from(fontSet).sort().forEach(fontFamily => {
+        if (fontFamily !== "System UI" && fontFamily !== "Vazirmatn") {
+           const opt = document.createElement("option");
+           opt.value = `"${fontFamily}", sans-serif`;
+           opt.textContent = fontFamily;
+           fontSelect.appendChild(opt);
+        }
+      });
+      
+      fontSelect.value = currentVal;
+      btnLoadFonts.textContent = "Loaded!";
+      setTimeout(() => btnLoadFonts.textContent = "Load System Fonts", 2000);
+    } catch (err) {
+      alert("Permission denied or failed to load local fonts.");
+    }
   });
   saveTitleBtn.addEventListener("click", () => {
     const val = customTitleInput.value.trim();
