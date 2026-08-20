@@ -2,7 +2,7 @@
 zed-tab extension for your browser
 
 
-## For Chrome
+### For Chrome
 1. Download or clone this repository.
 2. Open Chrome and go to `chrome://extensions/`.
 3. Turn on **Developer mode** .
@@ -10,7 +10,7 @@ zed-tab extension for your browser
 5. Select the zedtab folder.
 6. Open a New Tab and enjoy!
 
-## For Firefox
+### For Firefox
 1. Download or clone this repository.
 2. Open Firefox and go to `about:debugging#/runtime/this-firefox`.
 3. Click the **Load Temporary Add-on...** button.
