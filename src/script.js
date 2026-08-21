@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const clockElement = document.getElementById("clock");
   const dateElement = document.getElementById("dateDisplay");
-  const customTitleDisplay = document.getElementById("customTitleDisplay");
   const linksGrid = document.getElementById("linksGrid");
   const backgroundImg = document.getElementById("background-img");
 
@@ -20,8 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const langSelect = document.getElementById("langSelect");
   const fontSelect = document.getElementById("fontSelect");
   const btnLoadFonts = document.getElementById("btnLoadFonts");
-  const customTitleInput = document.getElementById("customTitleInput");
-  const saveTitleBtn = document.getElementById("saveTitleBtn");
 
   const btnWallColorToggle = document.getElementById("btnWallColorToggle");
   const colorInputContainer = document.getElementById("colorInputContainer");
@@ -63,8 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateClock();
     });
   }
-  let customTitle =
-    localStorage.getItem("productTab_customTitle") || "My Setup";
+
   let currentFolderId = "root";
   let editingItemId = null;
 
@@ -131,15 +127,13 @@ document.addEventListener("DOMContentLoaded", () => {
       lblYourItems: "Your Items",
       backText: "Back",
       rootFolder: "Main",
-      lblFont: "Font Family",
+      lblFont: "Font Family"
     },
     es: {
       dashTitle: "Ajustes",
       navGeneral: "General",
       navAppearance: "Apariencia",
       navBookmarks: "Marcadores",
-      lblCustomTitle: "Título Principal",
-      btnSaveTitle: "Guardar Título",
       btnSaved: "¡Guardado!",
       lblLanguage: "Idioma",
       lblBackground: "Fondo",
@@ -164,8 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
       navGeneral: "عمومی",
       navAppearance: "ظاهر",
       navBookmarks: "نشانک‌ها",
-      lblCustomTitle: "عنوان اصلی",
-      btnSaveTitle: "ذخیره عنوان",
       btnSaved: "ذخیره شد!",
       lblLanguage: "زبان",
       lblBackground: "پس زمینه",
@@ -197,8 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("navAppearance").textContent = lang.navAppearance;
     document.getElementById("navBookmarks").textContent = lang.navBookmarks;
 
-    document.getElementById("lblCustomTitle").textContent = lang.lblCustomTitle;
-    saveTitleBtn.textContent = lang.btnSaveTitle;
+
     document.getElementById("lblLanguage").textContent = lang.lblLanguage;
     document.getElementById("lblFont").textContent = lang.lblFont;
 
@@ -231,7 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function saveState() {
     localStorage.setItem("productTab_lang", currentLang);
     localStorage.setItem("productTab_font", currentFont);
-    localStorage.setItem("productTab_customTitle", customTitle);
     localStorage.setItem("productTab_bgType", bgType);
     localStorage.setItem("productTab_bgValue", bgValue);
     localStorage.setItem("productTab_themeColor", selectedThemeColor);
@@ -240,8 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function initGeneral() {
-    customTitleDisplay.textContent = customTitle;
-    customTitleInput.value = customTitle;
     updateClock();
     setInterval(updateClock, 1000);
   }
@@ -784,19 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Permission denied or failed to load local fonts.");
     }
   });
-  saveTitleBtn.addEventListener("click", () => {
-    const val = customTitleInput.value.trim();
-    if (val) {
-      customTitle = val;
-      customTitleDisplay.textContent = customTitle;
-      saveState();
-      const originalText = saveTitleBtn.textContent;
-      saveTitleBtn.textContent = i18n[currentLang].btnSaved;
-      setTimeout(() => {
-        saveTitleBtn.textContent = originalText;
-      }, 2000);
-    }
-  });
+
 
   btnWallColorToggle.addEventListener("click", () => {
     colorInputContainer.style.display =
@@ -1121,7 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
         productTab_bgValue: localStorage.getItem("productTab_bgValue"),
         productTab_themeColors: localStorage.getItem("productTab_themeColors"),
         productTab_font: localStorage.getItem("productTab_font"),
-        productTab_customTitle: localStorage.getItem("productTab_customTitle"),
+
         productTab_blur: localStorage.getItem("productTab_blur"),
         productTab_lang: localStorage.getItem("productTab_lang")
       };
